@@ -12,6 +12,7 @@ Documentation/doxygen/*
 
 .*pyc
 .pyc
+*.pyc
 
 /venv
 /venv/
