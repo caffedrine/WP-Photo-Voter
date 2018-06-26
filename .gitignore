@@ -1,0 +1,17 @@
+Debug/*
+/Debug/
+test/Debug/
+test/Debug/*
+
+Documentation/doxygen/*
+
+/Debug
+.idea
+.idea/
+.idea/*
+
+.*pyc
+.pyc
+
+/venv
+/venv/
