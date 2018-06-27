@@ -28,12 +28,6 @@ def try_vote(contest_id, vote_id, req_url, attempts=2, proxy=None):
     # Generate random uid
     uid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
-    # Send first request in order to get correct cookies
-    # try:
-    #     web_session.get("https://www.freerider.ro/concurs-foto/{id}".format(id=vote_id))
-    # except:
-    #     pass
-
     # Build request header
     request_header = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0",
                       "Accept": "*/*",
@@ -69,7 +63,14 @@ def try_vote(contest_id, vote_id, req_url, attempts=2, proxy=None):
             curr_proxy_tuple = {"https": "{proxy_type}://{ip_port}".format(proxy_type=proxy_type.lower(), ip_port=proxy),
                                 "http": "{proxy_type}://{ip_port}".format(proxy_type=proxy_type.lower(), ip_port=proxy)}
         else:
+            function_resp['error_desc'] = "Dead proxy"
             continue
+
+        # # Send first request in order to get correct cookies
+        # try:
+        #     web_session.get("https://www.freerider.ro/concurs-foto/{id}".format(id=vote_id))
+        # except:
+        #     pass
 
         # Try send HttpWebRequest
         try:
@@ -80,7 +81,7 @@ def try_vote(contest_id, vote_id, req_url, attempts=2, proxy=None):
             vote_resp_code = find_between(str(response.content), '"res":', ',')
 
             # Response code 1 means the vote was successfully counter
-            if vote_resp_code.__contains__("1") is False:
+            if vote_resp_code.__contains__("1") is False and vote_resp_code.__contains__("3") is False:
                 function_resp['status'] = False
                 function_resp['error_desc'] = "Request succeed but somehow vote was not counted :( Are you trying to vote twice from the same IP?"
                 continue
