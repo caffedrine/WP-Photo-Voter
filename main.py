@@ -12,7 +12,7 @@ from util import *
 
 # GLOBALS
 contest_id = "22"
-vote_id = "207"
+vote_id = "209"
 request_url = "https://www.freerider.ro/wp-admin/admin-ajax.php?vote_id={id}".format(id=vote_id)
 
 # Proxy list file and array()
@@ -46,7 +46,7 @@ def try_vote(contest_id, vote_id, req_url, attempts=2, proxy=None):
                           uid=uid),
                       "Connection": "Close"}
 
-    # Build second POST request
+    # Build POST request
     post_content = {"action": "vote",
                     "contest_id": contest_id,
                     "vote_id": vote_id,
@@ -71,24 +71,23 @@ def try_vote(contest_id, vote_id, req_url, attempts=2, proxy=None):
         else:
             continue
 
-        for i in range(attempts):
-            # Try send HttpWebRequest
-            try:
-                response = web_session.post(url=req_url, data=post_content, headers=request_header, timeout=15, proxies=curr_proxy_tuple)
-                function_resp['status'] = True
+        # Try send HttpWebRequest
+        try:
+            response = web_session.post(url=req_url, data=post_content, headers=request_header, timeout=15, proxies=curr_proxy_tuple)
+            function_resp['status'] = True
 
-                # Check response to know whether vote was counted or not
-                vote_resp_code = find_between(str(response.content), '"res":', ',')
+            # Check response to know whether vote was counted or not
+            vote_resp_code = find_between(str(response.content), '"res":', ',')
 
-                # Response code 1 means the vote was successfully counter
-                if vote_resp_code.__contains__("1") is False:
-                    function_resp['status'] = False
-                    function_resp['error_desc'] = "Request succeed but somehow vote was not counted :( Are you trying to vote twice from the same IP?"
-                    continue
-
-            except Exception as e:
-                function_resp['error_desc'] = str(e.message)
+            # Response code 1 means the vote was successfully counter
+            if vote_resp_code.__contains__("1") is False:
                 function_resp['status'] = False
+                function_resp['error_desc'] = "Request succeed but somehow vote was not counted :( Are you trying to vote twice from the same IP?"
+                continue
+
+        except Exception as e:
+            function_resp['error_desc'] = str(e.message)
+            function_resp['status'] = False
 
     return function_resp
 
@@ -154,4 +153,7 @@ def main():
 
 # Entry point
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print e.message + "\nProgram will exit now..."
