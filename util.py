@@ -6,6 +6,7 @@ def print_request(req):
         body=req.body,
     ))
 
+
 def print_response(res):
     print('HTTP/1.1 {status_code}\n{headers}\n\n{body}\n\n{cookies}'.format(
         status_code=res.status_code,
@@ -13,3 +14,12 @@ def print_response(res):
         body=res.content,
         cookies='\n'.join('{}: {}'.format(k, v) for k, v in res.cookies.items()),
     ))
+
+
+def find_between( s, first, last ):
+    try:
+        start = s.index( first ) + len( first )
+        end = s.index( last, start )
+        return s[start:end]
+    except ValueError:
+        return ""

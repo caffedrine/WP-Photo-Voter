@@ -1,12 +1,18 @@
+import string
+import time
+import datetime
+import sys
+import random
+
 import requests
 from requests import Session
 
 from util import *
 
 # GLOBALS
-contest_id = "25"
-vote_id = "206"
-requestUrl = "https://www.freerider.ro/wp-admin/admin-ajax.php?vote_id=%s" % vote_id
+contest_id = "22"
+vote_id = "207"
+requestUrl = "https://www.freerider.ro/wp-admin/admin-ajax.php?vote_id={id}".format(id=vote_id)
 
 # Proxy list file and array()
 proxy_list = "proxy.txt"
@@ -18,8 +24,14 @@ def try_vote(contest_id, vote_id, req_url, proxy):
     # Web requests session
     web_session = requests.Session()  # type: Session
 
-    # Generate random uid or grab it from last session
-    uid = "iTLZzpup"
+    # Generate random uid
+    uid=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+
+    # Send first request in order to get correct cookies
+    # try:
+    #     web_session.get("https://www.freerider.ro/concurs-foto/{id}".format(id=vote_id))
+    # except:
+    #     pass
 
     # Build request header
     request_header = {"User-Agent"      : "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0",
@@ -30,8 +42,7 @@ def try_vote(contest_id, vote_id, req_url, proxy):
                       "Content-Type"    : "application/x-www-form-urlencoded; charset=UTF-8",
                       "X-Requested-With": "XMLHttpRequest",
                       "Cookie"          : "JCS_INENREF=; JCS_INENTIM=1530037773197; viewed_cookie_policy=yes; fv_uid={uid}; PHPSESSID=e456adf18a85d4436db4677171293e85; evercookie_cache={uid}; evercookie_etag={uid}".format(uid=uid),
-                      "Connection"      : "Close"
-    }
+                      "Connection"      : "Close"}
 
     # Build second POST request
     post_content = {"action"    : "vote",
@@ -43,19 +54,32 @@ def try_vote(contest_id, vote_id, req_url, proxy):
                     "pp"        : "2260506713",
                     "fuckcache" : "705RsINb",
                     "some_str"  : "099109b4a7",
-                    "ds"        : "MTg3OXgxMDU2"
-                    }
+                    "ds"        : "MTg3OXgxMDU2"}
 
-    #try:
-    curr_proxy_tuple = {"https" : "socks5://" + proxy, "http" : "socks5://" + proxy}
-    response = web_session.post(url=req_url, data=post_content, headers=request_header, timeout=10, proxies=curr_proxy_tuple)
-    #except:
-        #response = None
+    # Proxy tuple
+    curr_proxy_tuple = {"https": "socks4://" + proxy, "http": "socks4://" + proxy}
 
-    if response is None or response.status_code != 200:
-        return False
-    else:
-        return True
+    # Store response
+    function_resp = { "status" : False, "error_desc" : ""}
+
+    # Try send HttpWebRequest
+    try:
+        response = web_session.post(url=req_url, data=post_content, headers=request_header, timeout=15, proxies=curr_proxy_tuple)
+        function_resp['status'] = True;
+
+        # Check response to know whether vote was counted or not
+        vote_resp_code = find_between(str(response.content), '"res":', ',')
+
+        # Response code 1 means the vote was successfully counter
+        if vote_resp_code.__contains__("1") is False:
+            function_resp['status'] = False;
+            function_resp['error_desc'] = "Request succeed but somehow vote was not counted :( Are you trying to vote twice from the same IP?"
+
+    except Exception as e:
+        function_resp['error_desc'] = str(e.message)
+        function_resp['status'] = False
+
+    return function_resp
 
 
 # Main function
@@ -66,8 +90,13 @@ def main():
             proxy_array.append(proxy.replace('\n', ''))
 
     for proxy in proxy_array:
-        try_vote(contest_id, vote_id, requestUrl, proxy)
-
+        st = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S.%f')[:-3]
+        sys.stdout.write("[{timestamp}] Voting from {proxy}...".format(timestamp=st, proxy=proxy))
+        vote_result = try_vote(contest_id, vote_id, requestUrl, proxy)
+        if vote_result['status'] is True:
+            sys.stdout.write("SUCCESS\n")
+        else:
+            sys.stdout.write("FAILED - {reason}\n".format(reason=vote_result['error_desc']))
 
 if __name__ == "__main__":
     main()
