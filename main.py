@@ -89,10 +89,11 @@ def main():
         for proxy in proxies:
             proxy_array.append(proxy.replace('\n', ''))
 
-    for proxy in proxy_array:
+    # Loop through every proxy and try to vote
+    for i in range(len(proxy_array)):
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S.%f')[:-3]
-        sys.stdout.write("[{timestamp}] Voting from {proxy}...".format(timestamp=st, proxy=proxy))
-        vote_result = try_vote(contest_id, vote_id, requestUrl, proxy)
+        sys.stdout.write("[{timestamp}] {index}. Voting from {proxy}...".format(timestamp=st, index=str(i), proxy=proxy_array[i]))
+        vote_result = try_vote(contest_id, vote_id, requestUrl, proxy_array[i])
         if vote_result['status'] is True:
             sys.stdout.write("SUCCESS\n")
         else:
