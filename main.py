@@ -84,7 +84,7 @@ def try_vote(contest_id, vote_id, req_url, proxy):
 
 # Main function
 def main():
-    # Load proxy list
+    # Load socks4 proxy list
     with open(proxy_list) as proxies:
         for proxy in proxies:
             proxy_array.append(proxy.replace('\n', ''))
@@ -94,7 +94,7 @@ def main():
     failVotes = 0
     for i in range(len(proxy_array)):
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S.%f')[:-3]
-        sys.stdout.write("[{timestamp}] {index}. Voting from {proxy}...".format(timestamp=st, index=str(i), proxy=proxy_array[i]))
+        sys.stdout.write("[{timestamp}] {index}. Voting from {proxy}...".format(timestamp=st, index=str(i+1), proxy=proxy_array[i]))
         vote_result = try_vote(contest_id, vote_id, requestUrl, proxy_array[i])
         if vote_result['status'] is True:
             successVotes += 1
@@ -109,5 +109,7 @@ def main():
     print("Success votes: {success_votes}".format(success_votes=str(successVotes)))
     print("Failed votes: {failed_votes}".format(failed_votes=str(failVotes)))
 
+
+# Entry point
 if __name__ == "__main__":
     main()
