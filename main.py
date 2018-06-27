@@ -90,14 +90,24 @@ def main():
             proxy_array.append(proxy.replace('\n', ''))
 
     # Loop through every proxy and try to vote
+    successVotes = 0
+    failVotes = 0
     for i in range(len(proxy_array)):
         st = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S.%f')[:-3]
         sys.stdout.write("[{timestamp}] {index}. Voting from {proxy}...".format(timestamp=st, index=str(i), proxy=proxy_array[i]))
         vote_result = try_vote(contest_id, vote_id, requestUrl, proxy_array[i])
         if vote_result['status'] is True:
+            successVotes += 1
             sys.stdout.write("SUCCESS\n")
         else:
+            failVotes += 1
             sys.stdout.write("FAILED - {reason}\n".format(reason=vote_result['error_desc']))
+
+    # Print final stats
+    print("===== STATS =====")
+    print("Total number of proxies: {proxies_number}".format( proxies_number=str(len(proxy_array))))
+    print("Success votes: {success_votes}".format(success_votes=str(successVotes)))
+    print("Failed votes: {failed_votes}".format(failed_votes=str(failVotes)))
 
 if __name__ == "__main__":
     main()
